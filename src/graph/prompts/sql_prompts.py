@@ -54,7 +54,19 @@ def create_sql_prompt(required_columns=None) -> ChatPromptTemplate:
     4. **Forbidden columns (CRITICAL)**
       - You **MUST NOT** include the `is_fraud` column in your SELECT clause.
       - You **MUST NOT** use `is_fraud` in your WHERE clause or any other part of the query.
-      - The `is_fraud` column is forbidden and should never be referenced in any way.{required_columns_section}
+      - The `is_fraud` column is forbidden and should never be referenced in any way.
+
+    5. **Column value formats (IMPORTANT)**
+      - `customer_gender`: stored as single-character codes. Use `'M'` for male, `'F'` for female.
+        Never use `'Male'`, `'Female'`, `'male'`, or `'female'`.
+      - `customer_state`: stored as 2-letter US state abbreviations (e.g., `'CA'`, `'TX'`, `'NY'`).
+        Never use full state names like `'California'` or `'Texas'`.
+
+    6. **Default time window**
+      - The dataset only contains transactions from **2020-06-21 to 2020-12-31**.
+      - If the question does not specify a time window (e.g. "check recent transactions",
+        "find latest fraud", "show suspicious activity"), use **2020-12-01 to 2020-12-31** as the default.
+      - Never query dates outside 2020-06-21 to 2020-12-31 unless explicitly instructed.{required_columns_section}
 
     ---------------- QUESTION ----------------
     {{question}}

@@ -170,6 +170,21 @@ def create_fraud_agent_node(
             print(f"[Fraud Agent] SQL query executed. Retrieved {len(transactions)} transactions.")
 
             if not transactions:
+                no_results_prompt = (
+                    f"A fraud detection query returned zero results from the database.\n\n"
+                    f"User question: {question}\n"
+                    f"SQL executed: {sql_query}\n\n"
+                    f"In 1-2 sentences, explain why no transactions were found. "
+                    f"Common reasons: the date range is outside the available data (Jun 21–Dec 31, 2020), "
+                    f"the merchant or customer name does not exist in the database, "
+                    f"or the filter combination is too restrictive. "
+                    f"Be concise and helpful. Do not mention SQL or technical details."
+                )
+                explanation = llm.chat(
+                    system_prompt="You are a helpful banking fraud detection assistant.",
+                    user_prompt=no_results_prompt,
+                )
+                answer = f"No transactions found.\n\n{explanation}"
                 return {
                     **state,
                     "sql_query": sql_query,
@@ -179,8 +194,8 @@ def create_fraud_agent_node(
                     "flagged_transactions": [],
                     "llm_analysis": "",
                     "llm_analysis_json": [],
-                    "final_fraud_report": "No transactions found matching the query criteria.",
-                    "answer": "No transactions found matching the query criteria.",
+                    "final_fraud_report": answer,
+                    "answer": answer,
                     "time_window_start": "",
                     "time_window_end": "",
                 }

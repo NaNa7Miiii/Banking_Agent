@@ -1,0 +1,554 @@
+{
+  "metadata": {
+    "total_queries": 30,
+    "pipeline_flows": {
+      "single_transaction": "SQL fetch by ID → XGBoost → LLM Analysis → Explanation report",
+      "time_window_batch": "SQL with filters → XGBoost batch → Flagged transaction IDs report"
+    },
+    "evaluation_metrics": ["Relevance", "Completeness", "Readability"],
+    "rating_scale": "1 (Poor) to 5 (Excellent)",
+    "fraud_threshold": 0.6
+  },
+  "queries": [
+    {
+      "id": "Q01",
+      "category": "Single Transaction",
+      "difficulty": "basic",
+      "pipeline_flow": "single_transaction",
+      "query": "Is transaction 16bf2e46c54369a8eab2214649506425 fraudulent?",
+      "note": "Known fraud=1 transaction. Tests most basic single-transaction path.",
+      "expected_output": "Fraud probability score, confidence level, and LLM explanation of why the model flagged or did not flag the transaction.",
+      "evaluation": {
+        "relevance_criteria": "Answer directly addresses whether this specific transaction is fraudulent.",
+        "completeness_criteria": "Includes fraud probability, confidence level, and explanation.",
+        "readability_criteria": "Clear, human-readable language with structured sections.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q02",
+      "category": "Single Transaction",
+      "difficulty": "basic",
+      "pipeline_flow": "single_transaction",
+      "query": "Analyze transaction ab4b379d2c0c9c667d46508d4e126d72 for fraud",
+      "note": "Known fraud=1 transaction. Different phrasing from Q01. Tests synonym understanding.",
+      "expected_output": "Fraud probability, confidence, and LLM explanation.",
+      "evaluation": {
+        "relevance_criteria": "Answer analyzes the specific transaction.",
+        "completeness_criteria": "Includes fraud probability, confidence, and detailed explanation.",
+        "readability_criteria": "Well-structured output with clear sections.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q03",
+      "category": "Single Transaction",
+      "difficulty": "basic",
+      "pipeline_flow": "single_transaction",
+      "query": "Check if transaction ID 7800b8a885e04ad7691656e123bdf9cf is suspicious",
+      "note": "Known fraud=0 transaction. Tests how agent handles a non-fraud case and 'suspicious' keyword.",
+      "expected_output": "Fraud probability, confidence, and LLM explanation.",
+      "evaluation": {
+        "relevance_criteria": "Addresses suspiciousness of the specified transaction.",
+        "completeness_criteria": "Includes model score and explanation.",
+        "readability_criteria": "Easy to understand for a non-technical user.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q04",
+      "category": "Single Transaction",
+      "difficulty": "basic",
+      "pipeline_flow": "single_transaction",
+      "query": "What is the fraud risk for transaction 47a9987ae81d99f7832a54b29a77bf4b?",
+      "note": "Known fraud=1 transaction. Uses 'fraud risk' phrasing. Tests intent understanding.",
+      "expected_output": "Fraud probability, confidence level, and explanation.",
+      "evaluation": {
+        "relevance_criteria": "Directly answers the fraud risk question.",
+        "completeness_criteria": "Quantifies risk (probability + confidence) and explains.",
+        "readability_criteria": "Risk clearly communicated in plain language.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q05",
+      "category": "Single Transaction",
+      "difficulty": "intermediate",
+      "pipeline_flow": "single_transaction",
+      "query": "Please review transaction 0ec38cb29c3ebf8440d920875e903a1d and tell me if it looks like fraud",
+      "note": "Known fraud=0 transaction. Conversational phrasing. Tests how agent handles natural language for a non-fraud case.",
+      "expected_output": "Fraud probability, confidence, and LLM explanation.",
+      "evaluation": {
+        "relevance_criteria": "Directly reviews the specific transaction.",
+        "completeness_criteria": "Includes all necessary fraud signals.",
+        "readability_criteria": "Conversational and accessible response.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q06",
+      "category": "Single Transaction",
+      "difficulty": "intermediate",
+      "pipeline_flow": "single_transaction",
+      "query": "Can you explain why transaction fe956c7e4a253c437c18918bf96f7b62 was flagged?",
+      "note": "Known fraud=1 transaction. Assumes it was flagged. Tests LLM explanation quality specifically.",
+      "expected_output": "Detailed LLM explanation of fraud signals for this transaction.",
+      "evaluation": {
+        "relevance_criteria": "Provides explanation for why the model flagged it.",
+        "completeness_criteria": "Covers suspicious patterns, anomalies, and mitigating factors.",
+        "readability_criteria": "Explanation is clear and logically structured.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q07",
+      "category": "Single Transaction",
+      "difficulty": "intermediate",
+      "pipeline_flow": "single_transaction",
+      "query": "Run fraud detection on transaction f6838c01f5d2262006e6b71d33ba7c6d",
+      "note": "Known fraud=1 transaction. Technical phrasing. Tests if the agent responds appropriately.",
+      "expected_output": "Fraud probability, confidence, and LLM explanation.",
+      "evaluation": {
+        "relevance_criteria": "Runs and reports fraud detection for the transaction.",
+        "completeness_criteria": "Includes all detection output fields.",
+        "readability_criteria": "Output is organized and interpretable.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q08",
+      "category": "Single Transaction",
+      "difficulty": "advanced",
+      "pipeline_flow": "single_transaction",
+      "query": "I need a fraud analysis report for transaction e49073c215881c97193882261063b586",
+      "note": "Known fraud=0 transaction. Requests a 'report'. Tests formatting quality for a non-fraud case.",
+      "expected_output": "A full report with fraud probability, confidence, transaction details, and LLM explanation.",
+      "evaluation": {
+        "relevance_criteria": "Output is in report format covering the transaction.",
+        "completeness_criteria": "Report includes all relevant information.",
+        "readability_criteria": "Report format is clean and professional.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q09",
+      "category": "Single Transaction - Edge Case",
+      "difficulty": "advanced",
+      "pipeline_flow": "single_transaction",
+      "query": "Is transaction NONEXISTENT_ID_99999 fraudulent?",
+      "note": "Transaction ID that does not exist in DB. Tests graceful error handling.",
+      "expected_output": "Clear message that the transaction ID was not found.",
+      "evaluation": {
+        "relevance_criteria": "Clearly tells the user the transaction was not found.",
+        "completeness_criteria": "Does not return confusing or incomplete data.",
+        "readability_criteria": "Error message is human-friendly.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q10",
+      "category": "Single Transaction",
+      "difficulty": "advanced",
+      "pipeline_flow": "single_transaction",
+      "query": "What are the suspicious indicators for transaction eb388ceabaf56474808664772b2d5853?",
+      "note": "Known fraud=1 transaction. Tests high-confidence fraud explanation quality.",
+      "expected_output": "High confidence fraud flag with detailed explanation of suspicious indicators.",
+      "evaluation": {
+        "relevance_criteria": "Focuses on suspicious indicators specifically.",
+        "completeness_criteria": "Lists multiple fraud signals from the transaction data.",
+        "readability_criteria": "Indicators are clearly listed and explained.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q11",
+      "category": "Time Window - Monthly",
+      "difficulty": "basic",
+      "pipeline_flow": "time_window_batch",
+      "query": "Find all fraudulent transactions in July 2020",
+      "note": "Basic monthly time window. Tests SQL date filter generation. July 2020 has ~85k rows.",
+      "expected_output": "Total transactions analyzed, number flagged, threshold used, and list of flagged transaction IDs.",
+      "evaluation": {
+        "relevance_criteria": "Results are scoped to January 2020.",
+        "completeness_criteria": "Includes total count, flagged count, threshold, and transaction IDs.",
+        "readability_criteria": "Report is easy to scan for key numbers.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q12",
+      "category": "Time Window - Monthly",
+      "difficulty": "basic",
+      "pipeline_flow": "time_window_batch",
+      "query": "Show me suspicious transactions from October 2020",
+      "note": "Alternative phrasing of monthly query. October 2020 has ~69k rows.",
+      "expected_output": "Batch fraud report for March 2020.",
+      "evaluation": {
+        "relevance_criteria": "Results are scoped to March 2020.",
+        "completeness_criteria": "Report is complete with all required fields.",
+        "readability_criteria": "Clear and concise output.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q13",
+      "category": "Time Window - Date Range",
+      "difficulty": "basic",
+      "pipeline_flow": "time_window_batch",
+      "query": "Detect fraud in transactions between 2020-07-01 and 2020-09-30",
+      "note": "Explicit date range (Q3 2020). Tests SQL date range generation. ~244k rows in range.",
+      "expected_output": "Batch fraud report for the specified date range.",
+      "evaluation": {
+        "relevance_criteria": "Results correctly span the specified date range.",
+        "completeness_criteria": "Count and IDs are provided.",
+        "readability_criteria": "Date range is clearly echoed in the response.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q14",
+      "category": "Time Window - Date Range",
+      "difficulty": "intermediate",
+      "pipeline_flow": "time_window_batch",
+      "query": "Which transactions between 2020-06-21 and 2020-12-31 are fraudulent?",
+      "note": "Full data range. Tests performance with very large batch (~555k rows).",
+      "expected_output": "Batch fraud report for H2 2019.",
+      "evaluation": {
+        "relevance_criteria": "Results are scoped to the 6-month window.",
+        "completeness_criteria": "Handles large batch correctly.",
+        "readability_criteria": "Report is still readable despite large volume.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q15",
+      "category": "Time Window - Weekly",
+      "difficulty": "intermediate",
+      "pipeline_flow": "time_window_batch",
+      "query": "Are there any fraudulent transactions in the week of 2020-08-10 to 2020-08-16?",
+      "note": "Weekly window. Tests short time range SQL generation. ~19.5k rows in this week.",
+      "expected_output": "Batch report for that specific week.",
+      "evaluation": {
+        "relevance_criteria": "Results are scoped to the specified week.",
+        "completeness_criteria": "Includes all fields even if results are few.",
+        "readability_criteria": "Time window is clearly stated in response.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q16",
+      "category": "Time Window - Daily",
+      "difficulty": "intermediate",
+      "pipeline_flow": "time_window_batch",
+      "query": "Check for fraud on 2020-09-15",
+      "note": "Single-day window. Tests narrow date filter SQL generation. ~3.1k rows on this day.",
+      "expected_output": "Batch report for that single day.",
+      "evaluation": {
+        "relevance_criteria": "Results are scoped to that exact date.",
+        "completeness_criteria": "Report complete even if few or zero transactions.",
+        "readability_criteria": "Clear indication of date scoped.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q17",
+      "category": "Time Window - High Amount Filter",
+      "difficulty": "intermediate",
+      "pipeline_flow": "time_window_batch",
+      "query": "Find fraudulent transactions over $1000 in August 2020",
+      "note": "Combines time window with amount filter. Tests multi-condition SQL. August 2020 has ~88k rows.",
+      "expected_output": "Batch report filtered by amount > 1000 and date in Aug 2020.",
+      "evaluation": {
+        "relevance_criteria": "Results are filtered to high-value transactions in Aug 2020.",
+        "completeness_criteria": "Both filters are reflected in the output.",
+        "readability_criteria": "Filter conditions are clearly stated in response.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q18",
+      "category": "Time Window - Merchant Filter",
+      "difficulty": "intermediate",
+      "pipeline_flow": "time_window_batch",
+      "query": "Show me all suspicious transactions at grocery stores in 2020",
+      "note": "Filters by merchant_category. Tests category-based SQL filter.",
+      "expected_output": "Batch report for grocery merchant category in 2020.",
+      "evaluation": {
+        "relevance_criteria": "Results are scoped to grocery merchants.",
+        "completeness_criteria": "Merchant category filter is applied correctly.",
+        "readability_criteria": "Category is mentioned clearly in response.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q19",
+      "category": "Time Window - Geographic Filter",
+      "difficulty": "intermediate",
+      "pipeline_flow": "time_window_batch",
+      "query": "Find fraudulent transactions in CA during Q3 2020",
+      "note": "Combines state filter (CA) with quarterly time window. Tests multi-filter SQL. Q3 2020 = Jul-Sep 2020, ~244k rows total.",
+      "expected_output": "Batch report for CA transactions in Q3 2020 (Jul-Sep 2020).",
+      "evaluation": {
+        "relevance_criteria": "Results are scoped to CA and Q3 2020.",
+        "completeness_criteria": "Geographic and time filters applied.",
+        "readability_criteria": "Both filters mentioned in response.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q20",
+      "category": "Time Window - Night Transactions",
+      "difficulty": "advanced",
+      "pipeline_flow": "time_window_batch",
+      "query": "Detect fraudulent transactions that happened between midnight and 6am in September 2020",
+      "note": "Time-of-day filter. Tests whether SQL correctly filters by hour range. September 2020 has ~69k rows.",
+      "expected_output": "Batch report for night-time transactions (00:00–06:00) in Sep 2020.",
+      "evaluation": {
+        "relevance_criteria": "Results are limited to nighttime hours in September 2020.",
+        "completeness_criteria": "Night-time filter is reflected in the SQL and report.",
+        "readability_criteria": "Time window is clearly stated.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q21",
+      "category": "Time Window - Edge Case: No Results",
+      "difficulty": "advanced",
+      "pipeline_flow": "time_window_batch",
+      "query": "Find fraudulent transactions in January 2000",
+      "note": "Date outside the dataset range. Tests graceful 'no results found' handling.",
+      "expected_output": "Clean message stating no transactions were found for that period.",
+      "evaluation": {
+        "relevance_criteria": "Correctly reports that no transactions exist for that date.",
+        "completeness_criteria": "Does not return empty or confusing output.",
+        "readability_criteria": "Clear and friendly no-results message.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q22",
+      "category": "Time Window - Edge Case: No Fraud Found",
+      "difficulty": "advanced",
+      "pipeline_flow": "time_window_batch",
+      "query": "Are there any fraudulent transactions on 2020-06-15?",
+      "note": "Pick a date where no transaction exceeds threshold=0.6. Tests format_no_fraud_report() output.",
+      "expected_output": "Report showing 0 flagged transactions with total count and threshold.",
+      "evaluation": {
+        "relevance_criteria": "Correctly answers 'no fraud found' for that day.",
+        "completeness_criteria": "Includes total analyzed count and threshold info.",
+        "readability_criteria": "Clear 'no fraud detected' message.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q23",
+      "category": "Time Window - Large Batch",
+      "difficulty": "advanced",
+      "pipeline_flow": "time_window_batch",
+      "query": "Find all fraudulent transactions in the second half of 2020",
+      "note": "Full dataset (H2 2020 = Jun 21–Dec 31 2020, ~555k rows). Tests batch prediction performance at scale.",
+      "expected_output": "Batch report for all of H2 2020 with flagged transaction IDs.",
+      "evaluation": {
+        "relevance_criteria": "Results cover the second half of 2020.",
+        "completeness_criteria": "Volume is handled and reported correctly.",
+        "readability_criteria": "Output remains readable despite large volume.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q24",
+      "category": "Time Window - Gender Filter",
+      "difficulty": "advanced",
+      "pipeline_flow": "time_window_batch",
+      "query": "Show fraudulent transactions made by female customers in September 2020",
+      "note": "Gender-based filter. Tests whether SQL handles customer_gender column correctly. September 2020 has ~69k rows.",
+      "expected_output": "Batch report filtered by customer_gender = 'F' in September 2020.",
+      "evaluation": {
+        "relevance_criteria": "Results are filtered to female customers in September 2020.",
+        "completeness_criteria": "Gender filter is applied in SQL.",
+        "readability_criteria": "Filter conditions are mentioned in response.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q25",
+      "category": "Time Window - High Amount + Date",
+      "difficulty": "advanced",
+      "pipeline_flow": "time_window_batch",
+      "query": "Detect high-value fraud: transactions above $500 between 2020-07-01 and 2020-09-30",
+      "note": "Combines high-amount filter and date range. Tests compound condition SQL. Q3 2020 has ~244k rows.",
+      "expected_output": "Batch report for transactions > $500 in Q3 2020.",
+      "evaluation": {
+        "relevance_criteria": "Both the amount threshold and date range are applied.",
+        "completeness_criteria": "Flagged IDs and counts are included.",
+        "readability_criteria": "Compound conditions are clearly stated in response.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q26",
+      "category": "Ambiguous - Could Be Either Flow",
+      "difficulty": "advanced",
+      "pipeline_flow": "time_window_batch",
+      "query": "Check recent transactions for fraud",
+      "note": "No time window specified. Tests if agent handles vague queries gracefully with a reasonable default.",
+      "expected_output": "Agent should either ask for clarification or use a reasonable default time window.",
+      "evaluation": {
+        "relevance_criteria": "Responds meaningfully to a vague query.",
+        "completeness_criteria": "Either clarifies or provides a reasonable result.",
+        "readability_criteria": "Response is not confusing or empty.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q27",
+      "category": "Ambiguous - Merchant Name",
+      "difficulty": "advanced",
+      "pipeline_flow": "time_window_batch",
+      "query": "Were there any fraudulent transactions at Smith LLC in 2020?",
+      "note": "Uses a specific merchant name. Tests merchant_name SQL filter and fuzzy matching.",
+      "expected_output": "Batch report for transactions at Smith LLC (or similar merchants) in 2020.",
+      "evaluation": {
+        "relevance_criteria": "Results are scoped to the specified merchant.",
+        "completeness_criteria": "Merchant filter is applied.",
+        "readability_criteria": "Merchant name is echoed in response.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q28",
+      "category": "Customer-Specific",
+      "difficulty": "advanced",
+      "pipeline_flow": "time_window_batch",
+      "query": "Check transactions made by customer John Smith for fraud in 2020",
+      "note": "Filters by customer first+last name. Tests multi-column customer filter in SQL.",
+      "expected_output": "Batch fraud report for customer John Smith's transactions in 2020.",
+      "evaluation": {
+        "relevance_criteria": "Results are scoped to this customer.",
+        "completeness_criteria": "Customer name filter applied in SQL.",
+        "readability_criteria": "Customer name is mentioned in response.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q29",
+      "category": "Time Window - Compound Filter (Amount + State + Date)",
+      "difficulty": "advanced",
+      "pipeline_flow": "time_window_batch",
+      "query": "Find fraudulent transactions above $300 in TX between 2020-07-01 and 2020-12-31",
+      "note": "Compound filter: amount > 300 AND state = TX AND date range H2 2020. Tests multi-condition SQL generation not covered by Q17-Q25.",
+      "expected_output": "Batch fraud report filtered by amount > $300, state TX, and H2 2020.",
+      "evaluation": {
+        "relevance_criteria": "Results are scoped to TX, amounts > $300, and H2 2020.",
+        "completeness_criteria": "All three filter conditions are applied in the SQL and reflected in the report.",
+        "readability_criteria": "Filter conditions are clearly stated in the response.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    },
+    {
+      "id": "Q30",
+      "category": "Time Window - Compound Filter (Gender + State + Date)",
+      "difficulty": "advanced",
+      "pipeline_flow": "time_window_batch",
+      "query": "Are there any suspicious transactions from male customers in CA between 2020-07-01 and 2020-12-31?",
+      "note": "Compound filter: gender = M AND state = CA AND H2 2020. Tests a gender + geographic + time combination not covered by Q24 (gender only) or Q19 (state only).",
+      "expected_output": "Batch fraud report filtered by male customers in CA in H2 2020.",
+      "evaluation": {
+        "relevance_criteria": "Results are scoped to male customers in CA during H2 2020.",
+        "completeness_criteria": "Gender, state, and date filters all applied correctly.",
+        "readability_criteria": "All filter conditions are clearly mentioned in the response.",
+        "relevance": null,
+        "completeness": null,
+        "readability": null,
+        "notes": ""
+      }
+    }
+  ]
+}

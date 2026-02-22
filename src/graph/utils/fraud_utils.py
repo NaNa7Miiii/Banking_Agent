@@ -40,6 +40,9 @@ def extract_transaction_id_from_question(question: str) -> Optional[str]:
     return None
 
 
+INTERNAL_COLUMNS = {"is_fraud"}
+
+
 def fetch_transaction_by_id(sql_agent: SQLAgent, transaction_id: str) -> Optional[Dict[str, Any]]:
     """Fetch a single transaction from database by transaction_id."""
     try:
@@ -50,7 +53,8 @@ def fetch_transaction_by_id(sql_agent: SQLAgent, transaction_id: str) -> Optiona
             transaction_rows = [dict(row._mapping) for row in result]
 
         if transaction_rows:
-            return transaction_rows[0]
+            row = transaction_rows[0]
+            return {k: v for k, v in row.items() if k not in INTERNAL_COLUMNS}
         return None
     except Exception as e:
         print(f"[Fraud Utils] Error fetching transaction {transaction_id}: {str(e)}")
@@ -63,7 +67,7 @@ def format_transaction_for_llm(transaction: Dict[str, Any], fraud_prob: float, c
     transaction_text += f"ML Fraud Probability: {fraud_prob:.4f} ({confidence} confidence)\n"
     transaction_text += f"Transaction Details:\n"
     for key, value in transaction.items():
-        if value is not None:
+        if value is not None and key not in INTERNAL_COLUMNS:
             transaction_text += f"  {key}: {value}\n"
     return transaction_text
 
@@ -198,9 +202,13 @@ def format_fraud_detection_report(
         f"-" * 60,
     ]
 
-    # List all transaction IDs
-    for idx, trans_id in enumerate(transaction_ids, 1):
+    # List transaction IDs (capped for readability)
+    MAX_DISPLAY = 50
+    for idx, trans_id in enumerate(transaction_ids[:MAX_DISPLAY], 1):
         report_parts.append(f"{idx}. {trans_id}")
+    if len(transaction_ids) > MAX_DISPLAY:
+        remaining = len(transaction_ids) - MAX_DISPLAY
+        report_parts.append(f"... and {remaining} more flagged transaction(s). Full list available on request.")
 
     return "\n".join(report_parts)
 
