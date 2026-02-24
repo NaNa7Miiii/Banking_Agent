@@ -1,23 +1,22 @@
-from typing import TypedDict, Any
+from __future__ import annotations
+
+import os
+from typing import Any
+
 from sqlalchemy import inspect
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough
-from langchain_community.utilities import SQLDatabase
 
 from src.data.utils import get_sql_db
-from src.graph.prompts.sql_prompts import create_sql_prompt, create_answer_prompt
 from src.graph.models.llm import get_llm
+from src.graph.prompts.sql_prompts_v1 import create_answer_prompt, create_sql_prompt
+from src.graph.utils.sql_safety import (
+    UnsafeSQLError,
+    clean_sql,
+    ensure_limit,
+    validate_select_only,
+)
 
-# SQL Agent state definition
-class SQLAgentState(TypedDict):
-    question: str
-    schema: str
-    query: str
-    response: Any
-    answer: str
 
-# format schema from inspector
-def format_schema_from_inspector(columns_info, table_name):
+def _format_schema(columns_info, table_name: str) -> str:
     lines = [f"Table: {table_name}", "-" * (7 + len(table_name))]
     for col in columns_info:
         name = col["name"]
@@ -29,109 +28,186 @@ def format_schema_from_inspector(columns_info, table_name):
         lines.append(f"{name} {col_type} {nullable_str}{default_str}")
     return "\n".join(lines)
 
-# get db schema
-def get_db_schema(db, table_name):
+
+def _get_schema_text(db, table_name: str) -> str:
     inspector = inspect(db._engine)
-    columns_info = inspector.get_columns(table_name)
-    return format_schema_from_inspector(columns_info, table_name)
-
-# sql agent class that encapsulates sql query generation and execution logic
-class SQLAgent:
-    def __init__(
-        self,
-        db,
-        table_name,
-        llm_model="gpt-4.1",
-        temperature=0.0,
-        required_columns=None):
-        self.db = db
-        self.table_name = table_name
-        self.llm = get_llm(
-            role="sql",
-            model_name=llm_model,
-            temperature=temperature,
-            use_langchain=True,
-        )
-
-        # Get schema
-        self.schema_text = get_db_schema(db, table_name)
-
-        # Create prompts with optional required columns
-        self.sql_prompt = create_sql_prompt(required_columns=required_columns)
-        self.answer_prompt = create_answer_prompt()
-
-        # Create SQL chain
-        self.sql_chain = (
-            RunnablePassthrough.assign(schema=lambda _: self.schema_text)
-            | self.sql_prompt
-            | self.llm.bind(stop="\nSQL Result:")
-            | StrOutputParser()
-        )
-
-        # Create full chain
-        self.full_chain = (
-            RunnablePassthrough.assign(
-                schema=lambda _: self.schema_text,
-                query=self.sql_chain,
-            )
-            .assign(
-                response=lambda variables: self.db.run(variables["query"]),
-            )
-            | self.answer_prompt
-            | self.llm
-            | StrOutputParser()
-        )
-
-    def run_query(self, query):
-        return self.db.run(query)
-
-    def generate_sql(self, question):
-        return self.sql_chain.invoke({"question": question})
-
-    def invoke(self, question):
-        return self.full_chain.invoke({"question": question})
+    cols = inspector.get_columns(table_name)
+    return _format_schema(cols, table_name)
 
 
-# general sql agent node
-def create_sql_agent_node(
+def _use_llm_sql() -> bool:
+    """
+    Keep it simple:
+    - default: RULE (no LLM)
+    - if SQL_MODE=LLM and ALLOW_LLM_CALLS=YES -> use LLM
+    """
+    sql_mode = os.getenv("SQL_MODE", "RULE").upper()
+    allow_llm = os.getenv("ALLOW_LLM_CALLS", "NO").upper()
+    return sql_mode == "LLM" and allow_llm == "YES"
+
+
+def _run_rule_sql(db, table_name: str) -> dict:
+    sql_query = f"SELECT * FROM {table_name} LIMIT 20;"
+    sql_result = db.run(sql_query)
+    return {
+        "schema": "",
+        "query": sql_query,
+        "response": sql_result,
+        "answer": str(sql_result),
+    }
+
+
+def _run_llm_sql(
     db,
-    table_name,
-    llm_model="gpt-4.1",
-    temperature=0.0):
-    agent = SQLAgent(db, table_name, llm_model, temperature)
+    table_name: str,
+    question: str,
+    llm_model: str,
+    temperature: float,
+    default_limit: int,
+    required_columns=None,
+) -> dict:
+    schema_text = _get_schema_text(db, table_name)
 
-    def sql_agent_node(state):
-        question = state.get("question", "")
-        if not question:
-            return {**state, "answer": "No question provided."}
+    llm = get_llm(
+        role="sql",
+        model_name=llm_model,
+        temperature=temperature,
+        use_langchain=True,
+    )
 
-        # Execute full pipeline
-        answer = agent.invoke(question)
+    sql_prompt = create_sql_prompt(required_columns=required_columns)
+    answer_prompt = create_answer_prompt()
 
-        sql_query = agent.generate_sql(question)
-        sql_result = agent.run_query(sql_query)
+    raw_sql = (sql_prompt | llm).invoke({"schema": schema_text, "question": question})
+    if not isinstance(raw_sql, str):
+        raw_sql = str(raw_sql)
 
-        return {
-            **state,
-            "schema": agent.schema_text,
+    sql_query = clean_sql(raw_sql)
+
+    validate_select_only(sql_query)
+    sql_query = ensure_limit(sql_query, default_limit=default_limit)
+
+    sql_result = db.run(sql_query)
+
+    answer = (answer_prompt | llm).invoke(
+        {
+            "schema": schema_text,
+            "question": question,
             "query": sql_query,
             "response": sql_result,
-            "answer": answer,
         }
+    )
+    if not isinstance(answer, str):
+        answer = str(answer)
+
+    return {
+        "schema": schema_text,
+        "query": sql_query,
+        "response": sql_result,
+        "answer": answer,
+    }
+
+
+def create_sql_agent_node(
+    db,
+    table_name: str,
+    llm_model: str = "gpt-4.1",
+    temperature: float = 0.0,
+    default_limit: int = 50,
+    required_columns=None,
+):
+    if db is None:
+
+        def sql_agent_node(state: dict) -> dict:
+            question = state.get("question", "")
+            if not question:
+                return {
+                    **state,
+                    "answer": "No question provided.",
+                    "schema": "",
+                    "query": "",
+                    "response": None,
+                }
+
+            return {
+                **state,
+                "schema": "",
+                "query": "",
+                "response": None,
+                "answer": (
+                    "Database connection is currently unavailable. "
+                    "Please check DB status and network settings."
+                ),
+            }
+
+        return sql_agent_node
+
+    def sql_agent_node(state: dict) -> dict:
+        question = state.get("question", "")
+        if not question:
+            return {
+                **state,
+                "answer": "No question provided.",
+                "schema": "",
+                "query": "",
+                "response": None,
+            }
+
+        # RULE mode (default)
+        if not _use_llm_sql():
+            try:
+                out = _run_rule_sql(db, table_name)
+                return {**state, **out}
+            except Exception as e:
+                return {
+                    **state,
+                    "schema": "",
+                    "query": f"SELECT * FROM {table_name} LIMIT 20;",
+                    "response": None,
+                    "answer": f"SQL execution failed: {e}",
+                }
+
+        try:
+            out = _run_llm_sql(
+                db=db,
+                table_name=table_name,
+                question=question,
+                llm_model=llm_model,
+                temperature=temperature,
+                default_limit=default_limit,
+                required_columns=required_columns,
+            )
+            return {**state, **out}
+        except UnsafeSQLError as e:
+            return {
+                **state,
+                "schema": _get_schema_text(db, table_name),
+                "query": "",
+                "response": None,
+                "answer": f"Refused to run unsafe SQL: {e}",
+            }
+        except Exception as e:
+            return {
+                **state,
+                "schema": _get_schema_text(db, table_name),
+                "query": "",
+                "response": None,
+                "answer": f"SQL agent failed: {e}",
+            }
 
     return sql_agent_node
 
 
-# creates a sql agent node for the transactions table
 def create_transaction_sql_agent_node(
-    username,
-    password,
-    host,
-    port,
-    database,
-    table_name="transactions",
-    llm_model="gpt-4.1",
-    temperature=0.0):
+    username: str,
+    password: str,
+    host: str,
+    port: str,
+    database: str,
+    table_name: str = "transactions",
+    llm_model: str = "gpt-4.1",
+    temperature: float = 0.0,
+):
     db = get_sql_db(
         username=username,
         password=password,
@@ -140,5 +216,9 @@ def create_transaction_sql_agent_node(
         database=database,
         echo=False,
     )
-    return create_sql_agent_node(db, table_name, llm_model, temperature)
-
+    return create_sql_agent_node(
+        db=db,
+        table_name=table_name,
+        llm_model=llm_model,
+        temperature=temperature,
+    )
