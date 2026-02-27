@@ -1,164 +1,168 @@
 from __future__ import annotations
 
-import os
-from typing import Optional
+from typing import TypedDict, List, Dict, Any, Optional, Literal, cast
 
-from langchain_classic.memory.summary_buffer import ConversationSummaryBufferMemory
+try:
+    from langchain_classic.memory.summary_buffer import ConversationSummaryBufferMemory
+except ImportError:
+    ConversationSummaryBufferMemory = Any
 
-from src.graph.graphs.router_schema import RouterOutput
-from src.graph.utils.memory import create_memory
-from src.graph.utils.json_sanitize import JsonParseError
-
-
-def format_conversation_history(
-    memory: Optional[ConversationSummaryBufferMemory],
-    current_query: str,
-    max_messages: int = 10,
-    prefix: str = "Previous conversation",
-) -> str:
-    if not memory:
-        return current_query
-
-    messages = memory.chat_memory.messages
-    if not messages:
-        return current_query
-
-    history_text = f"\n\n{prefix}:\n"
-    for msg in messages[-max_messages:]:
-        role = "User" if msg.type == "human" else "Assistant"
-        history_text += f"{role}: {msg.content}\n"
-
-    return history_text + f"\nCurrent user input: {current_query}"
+from src.graph.models.llm import get_llm
+from src.graph.prompts.router_prompts import ROUTER_SYSTEM_PROMPT
+from src.graph.utils.json_utils import safe_json_loads, JsonParseError
 
 
-def _basic_validate_router_output(data: dict) -> RouterOutput:
-    if "queries" not in data or not isinstance(data["queries"], list) or not data["queries"]:
-        raise ValueError("Router output must contain non-empty 'queries' list.")
-
-    queries = data["queries"]
-    for item in queries:
-        if not isinstance(item, dict):
-            raise ValueError("Each query item must be an object.")
-        for key in ("id", "original_text", "primary_intent"):
-            if key not in item or not isinstance(item[key], str) or not item[key].strip():
-                raise ValueError(f"Missing/invalid field '{key}' in query item.")
-
-    meta = data.get("meta")
-    if not isinstance(meta, dict):
-        raise ValueError("Router output must contain 'meta' object.")
-    for key in ("router", "confidence", "margin"):
-        if key not in meta:
-            raise ValueError(f"Router meta missing '{key}'.")
-
-    return data
+Intent = Literal[
+    "PERSONAL_SPENDING_ANALYSIS",
+    "FINANCIAL_KNOWLEDGE_QA",
+    "WEB_SEARCH",
+    "FRAUD_DETECTION",
+    "CHITCHAT_OR_OTHER",
+]
 
 
-def rule_route_output(user_query: str) -> RouterOutput:
-    text = (user_query or "").strip()
-    lowered = text.lower()
+class QueryItem(TypedDict):
+    id: str
+    original_text: str
+    primary_intent: Intent
 
-    if any(k in lowered for k in ["fraud", "suspicious", "scam", "stolen", "chargeback"]):
-        intent = "FRAUD_DETECTION"
-    elif any(k in lowered for k in ["search", "news", "latest", "web", "rate", "rates", "stock", "market"]):
-        intent = "WEB_SEARCH"
-    elif any(
-        k in lowered
-        for k in [
-            "transaction",
-            "transactions",
-            "recent",
-            "spent",
-            "spend",
-            "balance",
-            "merchant",
-            "amount",
-            "category",
-            "trend",
-            "month",
-            "week",
-        ]
-    ):
-        intent = "PERSONAL_SPENDING_ANALYSIS"
-    elif any(
-        k in lowered
-        for k in ["loan", "mortgage", "apr", "interest", "credit card", "points", "fee", "fees", "repayment", "invest"]
-    ):
-        intent = "FINANCIAL_KNOWLEDGE_QA"
-    else:
-        intent = "CHITCHAT_OR_OTHER"
 
-    return {
-        "queries": [
+class RouterMeta(TypedDict, total=False):
+    router: str
+    confidence: float
+    margin: float
+
+
+class RouterOutput(TypedDict):
+    queries: List[QueryItem]
+    meta: RouterMeta
+
+
+class RouterState(TypedDict, total=False):
+    user_input: str
+    customer_id_number: str
+    session_id: str
+
+    queries: List[QueryItem]
+    current_query_index: int
+    results: List[dict]
+    final_answer: str
+    summary_enabled: bool
+
+    meta: RouterMeta
+
+
+_ALLOWED_INTENTS = {
+    "PERSONAL_SPENDING_ANALYSIS",
+    "FINANCIAL_KNOWLEDGE_QA",
+    "WEB_SEARCH",
+    "FRAUD_DETECTION",
+    "CHITCHAT_OR_OTHER",
+}
+
+
+def _safe_float_01(x: Any, default: float = 0.0) -> float:
+    try:
+        v = float(x)
+    except Exception:
+        v = default
+    if v < 0.0:
+        return 0.0
+    if v > 1.0:
+        return 1.0
+    return v
+
+
+def normalize_router_output(raw: Dict[str, Any], fallback_text: str) -> RouterOutput:
+    meta_out: RouterMeta = {"router": "llm", "confidence": 0.0, "margin": 0.0}
+    raw_meta = raw.get("meta")
+    if isinstance(raw_meta, dict):
+        if isinstance(raw_meta.get("router"), str):
+            meta_out["router"] = raw_meta["router"]
+        if "confidence" in raw_meta:
+            meta_out["confidence"] = _safe_float_01(raw_meta.get("confidence"), 0.0)
+        if "margin" in raw_meta:
+            meta_out["margin"] = _safe_float_01(raw_meta.get("margin"), 0.0)
+
+    raw_queries = raw.get("queries")
+    queries_out: List[QueryItem] = []
+
+    if isinstance(raw_queries, list) and raw_queries:
+        for idx, qi in enumerate(raw_queries, start=1):
+            if not isinstance(qi, dict):
+                continue
+
+            qid = qi.get("id")
+            if not isinstance(qid, str) or not qid.strip():
+                qid = f"q{idx}"
+
+            original_text = qi.get("original_text")
+            if not isinstance(original_text, str) or not original_text.strip():
+                original_text = fallback_text
+
+            intent = qi.get("primary_intent")
+            if intent not in _ALLOWED_INTENTS:
+                intent = "CHITCHAT_OR_OTHER"
+
+            queries_out.append(
+                {
+                    "id": qid.strip(),
+                    "original_text": original_text.strip(),
+                    "primary_intent": cast(Intent, intent),
+                }
+            )
+
+    if not queries_out:
+        queries_out = [
             {
                 "id": "q1",
-                "original_text": text,
-                "primary_intent": intent,  # type: ignore[typeddict-item]
+                "original_text": fallback_text,
+                "primary_intent": cast(Intent, "CHITCHAT_OR_OTHER"),
             }
-        ],
-        "meta": {"router": "rule", "confidence": 1.0, "margin": 1.0},
-    }
+        ]
 
-
-def _llm_router_enabled() -> bool:
-    router_mode = os.getenv("ROUTER_MODE", "RULE").upper()
-    allow_llm = os.getenv("ALLOW_LLM_CALLS", "NO").upper()
-    return router_mode == "LLM" and allow_llm == "YES"
+    return {"queries": queries_out, "meta": meta_out}
 
 
 def route_query(
     user_query: str,
+    use_history: bool = False,
     memory: Optional[ConversationSummaryBufferMemory] = None,
+    system_prompt: Optional[str] = None,
 ) -> RouterOutput:
-    user_prompt = format_conversation_history(memory, user_query, max_messages=10)
-    router_mode = os.getenv("ROUTER_MODE", "RULE").upper()
+    llm = get_llm(role="router")
 
-    if router_mode != "LLM":
-        return rule_route_output(user_query)
-
-    if not _llm_router_enabled():
-        raise RuntimeError(
-            "ROUTER_MODE=LLM is set, but ALLOW_LLM_CALLS is not YES. "
-            "Refusing to call LLM router to prevent unintended cost."
-        )
-
-    raise RuntimeError(
-        "LLM router wiring is disabled in this branch. "
-        "To enable, implement llm.chat(...) and parse the output with safe_json_loads()."
+    raw_output = llm.chat(
+        system_prompt=system_prompt or ROUTER_SYSTEM_PROMPT,
+        user_prompt=user_query,
+        response_format=None,
     )
+
+    if isinstance(raw_output, str):
+        try:
+            parsed = safe_json_loads(raw_output)
+        except JsonParseError:
+            parsed = {"queries": [], "meta": {"router": "llm", "confidence": 0.0, "margin": 0.0}}
+    elif isinstance(raw_output, dict):
+        parsed = raw_output
+    else:
+        parsed = {"queries": [], "meta": {"router": "llm", "confidence": 0.0, "margin": 0.0}}
+
+    return normalize_router_output(parsed, fallback_text=user_query)
 
 
 def create_router_node():
-    def router_node(state: dict) -> dict:
+    def router_node(state: RouterState) -> RouterState:
         user_input = state.get("user_input", "")
-        customer_id_number = state.get("customer_id_number", "")
-        session_id = state.get("session_id", "")
+        if not user_input.strip():
+            return {**state, "queries": [], "current_query_index": 0, "results": [], "meta": {"router": "llm", "confidence": 0.0, "margin": 0.0}}
 
-        print(f"\n[Router] Starting routing for user input: {user_input}")
-
-        if not user_input:
-            print("[Router] WARNING: Empty user input received.")
-            return {**state, "queries": [], "current_query_index": 0}
-
-        memory = None
-        if customer_id_number and session_id:
-            memory = create_memory(customer_id_number, session_id, max_token_limit=2000)
-            memory.chat_memory.add_user_message(user_input)
-
-        try:
-            router_output = route_query(user_input, memory=memory)
-        except JsonParseError as e:
-            print(f"[Router] ERROR: LLM router JSON parse failed: {e}. Falling back to RULE.")
-            router_output = rule_route_output(user_input)
-
-        router_output = _basic_validate_router_output(router_output)
-
-        print(f"[Router] Routing completed. Found {len(router_output['queries'])} sub-queries:")
-        for q in router_output["queries"]:
-            print(f"  - {q['id']}: {q['original_text']} (Intent: {q['primary_intent']})")
+        router_output = route_query(user_input)
 
         return {
             **state,
             "queries": router_output["queries"],
+            "meta": router_output["meta"],
             "current_query_index": 0,
             "results": [],
         }
