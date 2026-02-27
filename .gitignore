@@ -32,3 +32,5 @@ src/data/processed/clean_fraud.csv
 src/data/raw_data/fraud test.csv
 src/data/processed_splits/train_processed.csv
 *.pkl
+router_eval_*_results.csv
+router_eval_*_metrics.json

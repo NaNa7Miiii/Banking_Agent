@@ -1,56 +1,56 @@
 text,true_intent
-I think someone stole my credit card,FRAUD_DETECTION
+Why was I charged twice for the same purchase,FRAUD_DETECTION
+Someone used my card without permission,FRAUD_DETECTION
 This transaction looks suspicious,FRAUD_DETECTION
-Why is there a charge I do not recognize,FRAUD_DETECTION
-Was my account involved in a scam,FRAUD_DETECTION
-I see a fraudulent payment on my account,FRAUD_DETECTION
-My card might be stolen,FRAUD_DETECTION
-There is an unknown merchant on my statement,FRAUD_DETECTION
-Is this charge a fraud,FRAUD_DETECTION
-I think my account was hacked,FRAUD_DETECTION
-Help me check suspicious activity,FRAUD_DETECTION
+I think my card has been compromised,FRAUD_DETECTION
+There is an unknown charge on my account,FRAUD_DETECTION
+My account was charged in another country,FRAUD_DETECTION
+I didn’t authorize this payment,FRAUD_DETECTION
+Why is there a random subscription on my card,FRAUD_DETECTION
+I see a small test charge on my statement,FRAUD_DETECTION
+My card details might have been stolen,FRAUD_DETECTION
+There’s a purchase I don’t remember making,FRAUD_DETECTION
 
-Show my recent transactions,PERSONAL_SPENDING_ANALYSIS
-How much did I spend last week,PERSONAL_SPENDING_ANALYSIS
-List my transactions for this month,PERSONAL_SPENDING_ANALYSIS
-What is my current balance,PERSONAL_SPENDING_ANALYSIS
-Which merchant did I spend the most on,PERSONAL_SPENDING_ANALYSIS
-Show my spending by category,PERSONAL_SPENDING_ANALYSIS
-How much money did I spend on food,PERSONAL_SPENDING_ANALYSIS
-Display my transactions from last Friday,PERSONAL_SPENDING_ANALYSIS
+Show my transactions above $100,PERSONAL_SPENDING_ANALYSIS
+How much did I spend on groceries,PERSONAL_SPENDING_ANALYSIS
 What was my largest transaction,PERSONAL_SPENDING_ANALYSIS
-Summarize my spending behavior,PERSONAL_SPENDING_ANALYSIS
+Display my pending transactions,PERSONAL_SPENDING_ANALYSIS
+Give me my account balance,PERSONAL_SPENDING_ANALYSIS
+Show my card payments history,PERSONAL_SPENDING_ANALYSIS
+List transactions for today,PERSONAL_SPENDING_ANALYSIS
+How much money did I withdraw recently,PERSONAL_SPENDING_ANALYSIS
+Break down my expenses by category,PERSONAL_SPENDING_ANALYSIS
+What are my recent card charges,PERSONAL_SPENDING_ANALYSIS
 
-What is the current interest rate,WEB_SEARCH
-Search news about inflation,WEB_SEARCH
-What is the market outlook today,WEB_SEARCH
-Find news about banking regulations,WEB_SEARCH
-Search for credit card offers,WEB_SEARCH
-What are the latest finance headlines,WEB_SEARCH
-Check mortgage rates today,WEB_SEARCH
-Search market trends,WEB_SEARCH
+What amount did the company report for cost of goods sold,FINANCIAL_KNOWLEDGE_QA
+What are the company’s total operating expenses,FINANCIAL_KNOWLEDGE_QA
+What percentage of revenue was spent on sales and marketing,FINANCIAL_KNOWLEDGE_QA
+What is the reported earnings per share,FINANCIAL_KNOWLEDGE_QA
+How did the company describe its liquidity position,FINANCIAL_KNOWLEDGE_QA
+What does the 10-K say about future growth plans,FINANCIAL_KNOWLEDGE_QA
+How are the company’s assets classified on the balance sheet,FINANCIAL_KNOWLEDGE_QA
+What is the company’s total stockholder equity,FINANCIAL_KNOWLEDGE_QA
+What did the management discuss about competitive landscape,FINANCIAL_KNOWLEDGE_QA
+How much did the company return to shareholders via dividends,FINANCIAL_KNOWLEDGE_QA
 
-How does credit card interest work,FINANCIAL_KNOWLEDGE_QA
-What is a late payment fee,FINANCIAL_KNOWLEDGE_QA
-Explain loan repayment options,FINANCIAL_KNOWLEDGE_QA
-How is interest calculated on loans,FINANCIAL_KNOWLEDGE_QA
-What fees does a credit card have,FINANCIAL_KNOWLEDGE_QA
-Explain minimum payment on credit cards,FINANCIAL_KNOWLEDGE_QA
-What happens if I miss a payment,FINANCIAL_KNOWLEDGE_QA
-
-Hello how are you,CHITCHAT_OR_OTHER
-Tell me a joke,CHITCHAT_OR_OTHER
-Thanks for your help,CHITCHAT_OR_OTHER
-Good morning,CHITCHAT_OR_OTHER
+Thanks a lot,CHITCHAT_OR_OTHER
+Goodbye,CHITCHAT_OR_OTHER
+See you later,CHITCHAT_OR_OTHER
+Who are you,CHITCHAT_OR_OTHER
 What can you do,CHITCHAT_OR_OTHER
+That sounds great,CHITCHAT_OR_OTHER
+Really,CHITCHAT_OR_OTHER
+I agree with you,CHITCHAT_OR_OTHER
+That’s interesting,CHITCHAT_OR_OTHER
+No problem,CHITCHAT_OR_OTHER
 
-Show my recent transactions and check for fraud,PERSONAL_SPENDING_ANALYSIS
-Is there anything suspicious in my recent spending,FRAUD_DETECTION
-Check my transactions for strange activity,FRAUD_DETECTION
-How much did I spend and is it normal,PERSONAL_SPENDING_ANALYSIS
-Review my account for possible fraud,FRAUD_DETECTION
-Show spending history and flag suspicious charges,PERSONAL_SPENDING_ANALYSIS
-Analyze my transactions for unusual behavior,FRAUD_DETECTION
-Look at my recent transactions,FRAUD_DETECTION
-Is my spending pattern normal,PERSONAL_SPENDING_ANALYSIS
-Check my account activity,PERSONAL_SPENDING_ANALYSIS
+What are today’s headlines,WEB_SEARCH
+What is the current exchange rate for USD to EUR,WEB_SEARCH
+What is the federal funds rate right now,WEB_SEARCH
+What is the price of oil today,WEB_SEARCH
+What are the latest finance updates,WEB_SEARCH
+What is the unemployment rate currently,WEB_SEARCH
+What is the current prime rate,WEB_SEARCH
+What is today’s weather forecast,WEB_SEARCH
+Who is the current president of the United States,WEB_SEARCH
+What is the latest news about inflation,WEB_SEARCH
