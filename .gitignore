@@ -34,3 +34,5 @@ src/data/processed_splits/train_processed.csv
 *.pkl
 router_eval_*_results.csv
 router_eval_*_metrics.json
+sql_results_*.txt
+sql_summary_*.txt
