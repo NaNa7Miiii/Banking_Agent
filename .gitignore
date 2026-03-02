@@ -36,3 +36,8 @@ router_eval_*_results.csv
 router_eval_*_metrics.json
 sql_results_*.txt
 sql_summary_*.txt
+
+# Local runtime
+.venv/
+logs/
+output/git add .gitignore
