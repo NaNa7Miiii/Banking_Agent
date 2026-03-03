@@ -27,15 +27,8 @@ class QueryItem(TypedDict):
     primary_intent: Intent
 
 
-class RouterMeta(TypedDict, total=False):
-    router: str
-    confidence: float
-    margin: float
-
-
 class RouterOutput(TypedDict):
     queries: List[QueryItem]
-    meta: RouterMeta
 
 
 class RouterState(TypedDict, total=False):
@@ -49,8 +42,6 @@ class RouterState(TypedDict, total=False):
     final_answer: str
     summary_enabled: bool
 
-    meta: RouterMeta
-
 
 _ALLOWED_INTENTS = {
     "PERSONAL_SPENDING_ANALYSIS",
@@ -61,29 +52,7 @@ _ALLOWED_INTENTS = {
 }
 
 
-def _safe_float_01(x: Any, default: float = 0.0) -> float:
-    try:
-        v = float(x)
-    except Exception:
-        v = default
-    if v < 0.0:
-        return 0.0
-    if v > 1.0:
-        return 1.0
-    return v
-
-
 def normalize_router_output(raw: Dict[str, Any], fallback_text: str) -> RouterOutput:
-    meta_out: RouterMeta = {"router": "llm", "confidence": 0.0, "margin": 0.0}
-    raw_meta = raw.get("meta")
-    if isinstance(raw_meta, dict):
-        if isinstance(raw_meta.get("router"), str):
-            meta_out["router"] = raw_meta["router"]
-        if "confidence" in raw_meta:
-            meta_out["confidence"] = _safe_float_01(raw_meta.get("confidence"), 0.0)
-        if "margin" in raw_meta:
-            meta_out["margin"] = _safe_float_01(raw_meta.get("margin"), 0.0)
-
     raw_queries = raw.get("queries")
     queries_out: List[QueryItem] = []
 
@@ -121,7 +90,7 @@ def normalize_router_output(raw: Dict[str, Any], fallback_text: str) -> RouterOu
             }
         ]
 
-    return {"queries": queries_out, "meta": meta_out}
+    return {"queries": queries_out}
 
 
 def route_query(
@@ -142,11 +111,11 @@ def route_query(
         try:
             parsed = safe_json_loads(raw_output)
         except JsonParseError:
-            parsed = {"queries": [], "meta": {"router": "llm", "confidence": 0.0, "margin": 0.0}}
+            parsed = {"queries": []}
     elif isinstance(raw_output, dict):
         parsed = raw_output
     else:
-        parsed = {"queries": [], "meta": {"router": "llm", "confidence": 0.0, "margin": 0.0}}
+        parsed = {"queries": []}
 
     return normalize_router_output(parsed, fallback_text=user_query)
 
@@ -155,14 +124,18 @@ def create_router_node():
     def router_node(state: RouterState) -> RouterState:
         user_input = state.get("user_input", "")
         if not user_input.strip():
-            return {**state, "queries": [], "current_query_index": 0, "results": [], "meta": {"router": "llm", "confidence": 0.0, "margin": 0.0}}
+            return {
+                **state,
+                "queries": [],
+                "current_query_index": 0,
+                "results": [],
+            }
 
         router_output = route_query(user_input)
 
         return {
             **state,
             "queries": router_output["queries"],
-            "meta": router_output["meta"],
             "current_query_index": 0,
             "results": [],
         }
