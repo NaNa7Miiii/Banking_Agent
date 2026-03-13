@@ -565,9 +565,9 @@
       "relevance_criteria": "Correctly answers 'no fraud found' for that day.",
       "completeness_criteria": "Includes total analyzed count and threshold info.",
       "readability_criteria": "Clear 'no fraud detected' message.",
-      "relevance": null,
-      "completeness": null,
-      "readability": null,
+      "relevance": 5,
+      "completeness": 5,
+      "readability": 5,
       "notes": ""
     }
   },
@@ -587,9 +587,9 @@
       "relevance_criteria": "Both the amount threshold and date range are applied.",
       "completeness_criteria": "Flagged IDs and counts are included.",
       "readability_criteria": "Compound conditions are clearly stated in response.",
-      "relevance": null,
-      "completeness": null,
-      "readability": null,
+      "relevance": 5,
+      "completeness": 5,
+      "readability": 5,
       "notes": ""
     }
   },
@@ -609,9 +609,9 @@
       "relevance_criteria": "Responds meaningfully to a vague query.",
       "completeness_criteria": "Either clarifies or provides a reasonable result.",
       "readability_criteria": "Response is not confusing or empty.",
-      "relevance": null,
-      "completeness": null,
-      "readability": null,
+      "relevance": 5,
+      "completeness": 5,
+      "readability": 5,
       "notes": ""
     }
   },
@@ -631,9 +631,9 @@
       "relevance_criteria": "Results are scoped to the specified merchant.",
       "completeness_criteria": "Merchant filter is applied.",
       "readability_criteria": "Merchant name is echoed in response.",
-      "relevance": null,
-      "completeness": null,
-      "readability": null,
+      "relevance": 5,
+      "completeness": 5,
+      "readability": 5,
       "notes": ""
     }
   },
@@ -653,9 +653,9 @@
       "relevance_criteria": "Results are scoped to this customer.",
       "completeness_criteria": "Customer name filter applied in SQL.",
       "readability_criteria": "Customer name is mentioned in response.",
-      "relevance": null,
-      "completeness": null,
-      "readability": null,
+      "relevance": 5,
+      "completeness": 5,
+      "readability": 5,
       "notes": ""
     }
   }
