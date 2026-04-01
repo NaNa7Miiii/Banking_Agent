@@ -57,29 +57,40 @@ def _run_sql(step: dict[str, Any], context: ExecutionContext) -> StepResult:
 
     if user_id and _instruction_looks_like_transaction_retrieval(instruction):
         start_end = _parse_date_range(instruction)
-        if start_end:
-            start_date, end_date = start_end
-            engine = get_engine()
-            table_name = get_table_name()
-            rows, err, truncated = run_transaction_retrieval_template(
-                engine, table_name, user_id, start_date, end_date
-            )
-            if err:
-                return _build_result(
-                    step, "error", "",
-                    artifacts={"sql": None, "result": None},
-                    error_message=err,
-                    agent_name="sql_agent",
-                )
-            summary = f"Retrieved {len(rows)} transaction(s)."
-            if truncated:
-                summary += " (Capped at 1000 rows.)"
+
+        if not start_end or not start_end[0] or not start_end[1]:
             return _build_result(
-                step, "ok", summary,
-                artifacts={"sql": "(transaction retrieval template)", "result": rows},
-                error_message="",
+                step,
+                "error",
+                "",
+                artifacts={"sql": None, "result": None},
+                error_message="Please provide dates in YYYY-MM-DD format, for example: 2024-01-01 or 2024-01-01 to 2024-01-07.",
                 agent_name="sql_agent",
             )
+
+        start_date, end_date = start_end
+
+        engine = get_engine()
+        table_name = get_table_name()
+        rows, err, truncated = run_transaction_retrieval_template(
+            engine, table_name, user_id, start_date, end_date
+        )
+        if err:
+            return _build_result(
+                step, "error", "",
+                artifacts={"sql": None, "result": None},
+                error_message=err,
+                agent_name="sql_agent",
+            )
+        summary = f"Retrieved {len(rows)} transaction(s)."
+        if truncated:
+            summary += " (Capped at 1000 rows.)"
+        return _build_result(
+            step, "ok", summary,
+            artifacts={"sql": "(transaction retrieval template)", "result": rows},
+            error_message="",
+            agent_name="sql_agent",
+        )
 
     out = run_sql_agent(question=instruction, current_user_id=user_id)
     status = "ok" if not out.get("error") else "error"

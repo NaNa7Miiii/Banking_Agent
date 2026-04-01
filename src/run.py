@@ -107,6 +107,8 @@ def main():
     if final_answer is not None:
         print("--- Final answer ---")
         print(final_answer)
+    print("--- Execution state ---")
+    print(json.dumps(result.get("execution_state"), indent=2, ensure_ascii=False, default=str))
     print("--- End ---")
 
 
