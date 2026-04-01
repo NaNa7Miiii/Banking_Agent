@@ -1,179 +1,85 @@
-# Banking Agent
+# Router + SQL Module (Midterm Version)
 
-A conversational AI agent system for banking operations, built with LangChain and LangGraph. The system provides intelligent query routing, SQL database access, RAG, web search, and fraud detection capabilities.
+This branch contains the Router + SQL work developed during the midterm stage of the project.
 
-## Features
+The main focus of this version is not only functionality, but also reliability, interpretability, and safety in financial query handling.
 
-- **Intelligent Routing**: Automatically routes user queries to appropriate agents
-- **SQL Database Access**: Query customer transaction database
-- **RAG (Retrieval-Augmented Generation)**: Knowledge base search using Pinecone
-- **Web Search**: Real-time web search using Tavily
-- **Fraud Detection**: ML-based transaction fraud detection
-- **Conversation Memory**: Redis-backed conversation history management
 
-## Prerequisites
+## What this module does
 
-- Python 3.10+
-- Docker (for running Redis)
-- PostgreSQL database access
-- API keys for:
-  - OpenAI (for LLM)
-  - Pinecone (optional, for RAG)
-  - Tavily (optional, for web search)
+The Router + SQL module is responsible for:
 
-## Installation
+- classifying user queries into predefined intent types
+- routing transaction-related questions to the SQL component
+- retrieving structured financial data from the database
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/NaNa7Miiii/Banking_Agent.git
-   cd Banking_Agent
-   git checkout jiarui
-   ```
 
-2. **Create and activate virtual environment**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+## Main design focus
 
-3. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
+This version treats the Router + SQL component as a problem that can be analyzed and evaluated, rather than only as an engineering feature.
 
-## Setting Up Redis with Docker
+### 1. Routing as an intent classification task
+- The router is used to classify user questions into structured intent categories
+- The output is normalized into a consistent query format
+- The design emphasizes interpretability and error analysis, not only execution flow
 
-The project uses Redis for conversation memory storage. Redis runs locally using Docker.
+### 2. Reliability and evaluation
+- Routing performance is evaluated using standard classification metrics
+- The evaluation includes:
+  - accuracy
+  - precision / recall / F1-score
+  - confusion matrix
+- Additional attention is given to ambiguous queries and misclassified cases
 
-### Using Docker to Run Redis
+### 3. SQL safety and control
+- The SQL agent is designed to remain read-only
+- Query generation is constrained by:
+  - SELECT-only validation
+  - enforced LIMIT
+  - filtering of unsafe statements
+- These constraints make the SQL component more suitable for financial data access, where safety and verification are important
 
-1. **Pull and run Redis container**
-   ```bash
-   docker run -d \
-     --name redis-banking-agent \
-     -p 6379:6379 \
-     redis:latest
-   ```
 
-2. **Verify Redis is running**
-   ```bash
-   docker ps
-   # You should see redis-banking-agent container running
-   ```
+## Key components
 
-3. **Test Redis connection** (optional)
-   ```bash
-   docker exec -it redis-banking-agent redis-cli ping
-   # Should return: PONG
-   ```
+### Router
+- Converts user input into structured intent labels
+- Produces normalized query objects
+- Handles malformed or unexpected LLM outputs safely
 
-### Redis Management Commands
+### SQL Agent
+- Generates SQL queries from natural language questions
+- Applies safety checks before execution
+- Includes fallback behavior when SQL generation fails
 
-- **Stop Redis container**:
-  ```bash
-  docker stop redis-banking-agent
-  ```
 
-- **Start Redis container**:
-  ```bash
-  docker start redis-banking-agent
-  ```
+## Evaluation
 
-- **Remove Redis container** (when you no longer need it):
-  ```bash
-  docker stop redis-banking-agent
-  docker rm redis-banking-agent
-  ```
+This branch includes an evaluation pipeline for the routing component.
 
-### Redis Configuration
+The evaluation focuses on:
+- classification performance across intent types
+- confusion matrix analysis
+- comparison of routing behavior under different query cases
 
-The application connects to Redis at `localhost:6379` by default. This is configured in `src/graph/utils/memory.py`:
+This allows the Router to be examined as a measurable classification component instead of a purely black-box agent.
 
-```python
-REDIS_HOST = "localhost"
-REDIS_PORT = 6379
-```
 
-If you need to change the Redis configuration, modify these values in `src/graph/utils/memory.py`.
+## Why this matters
 
-## Environment Configuration
+In a financial setting, correctness and safety matter as much as functionality.
 
-Create a `.env` file in the project root directory with the following variables:
+This version emphasizes:
+- reliability in routing behavior
+- safety in SQL execution
+- interpretability of both successes and failures
 
-```env
-# Database Configuration (Required)
-DB_HOST=your-database-host.rds.amazonaws.com
-DB_PASSWORD=your-database-password
+The goal is to support financial decision-related queries in a way that is easier to analyze and verify.
 
-# Optional Database Settings (have defaults)
-DB_USERNAME=postgres
-DB_PORT=5432
-DB_DATABASE=customer_transaction_db
-DB_TABLE_NAME=transactions
 
-# API Keys (Optional)
-OPENAI_API_KEY=your-openai-api-key
-PINECONE_API_KEY=your-pinecone-api-key
-TAVILY_SEARCH_KEY=your-tavily-api-key
-```
+## Relation to later versions
 
-## Usage
+- `router-sql-evaluation`: midterm-stage Router + SQL development with evaluation focus
+- `router-sql`: later post-reorg improvements, mainly robustness and edge-case handling
 
-### Basic Chat Interface
-
-```bash
-python src/chat_interface.py "<user_query>" <customer_id_number> [session_id] [--summary]
-```
-
-**Example**:
-```bash
-python src/chat_interface.py "What are my recent transactions?" "12345"
-```
-
-**Arguments**:
-- `user_query`: The user's question or request
-- `customer_id_number`: Customer ID for the query
-- `session_id`: (Optional) Session ID for conversation continuity
-- `--summary`: (Optional) Enable conversation summary
-
-### Using as Python Module
-
-```python
-from src.chat_interface import chat
-
-result = chat(
-    user_input="What are my recent transactions?",
-    customer_id_number="12345",
-    session_id="session-123",
-    summary=True
-)
-
-print(result["final_answer"])
-```
-
-## Project Structure
-
-```
-agent_bank/
-├── src/
-│   ├── chat_interface.py      # Main chat interface
-│   ├── config.py               # Configuration management
-│   ├── graph/                  # LangGraph components
-│   │   ├── graphs/            # Main graph definitions
-│   │   ├── modules/           # Agent modules
-│   │   ├── models/            # LLM models
-│   │   ├── prompts/           # Prompt templates
-│   │   ├── rag/               # RAG utilities
-│   │   └── utils/             # Utilities (including Redis memory)
-│   └── data/                  # Data processing utilities
-├── requirements.txt            # Python dependencies
-└── README.md                  # This file
-```
-
-## Agent Capabilities
-
-1. **Router Agent**: Determines the appropriate agent for each query
-2. **SQL Agent**: Executes SQL queries on the transaction database
-3. **RAG Agent**: Searches knowledge base using vector similarity
-4. **Tavily Agent**: Performs web searches for real-time information
-5. **Fraud Agent**: Detects potentially fraudulent transactions
+This branch represents the earlier analytical and evaluation-oriented version of the Router + SQL module.
