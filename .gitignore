@@ -33,3 +33,6 @@ notebooks/
 # resources/data/
 # *.pkl
 # *.joblib
+evaluation/output/
+*-1.py
+*-1.md
