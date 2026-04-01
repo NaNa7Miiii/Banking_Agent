@@ -1,0 +1,46 @@
+# Core LangChain & LangGraph
+langchain>=0.1.0
+langgraph>=0.0.40
+langchain-openai>=0.0.5
+langchain-community>=0.0.20
+langchain-classic>=1.0.0  # For ConversationSummaryBufferMemory
+langchain-text-splitters>=0.0.1  # For text splitting in RAG
+
+# LLM & Embeddings
+openai>=1.10.0
+
+# Vector Database
+pinecone>=3.0.0
+
+# Search & Research
+tavily-python>=0.7.0  # For web search functionality
+
+# AWS SDK (for S3/RDS data access)
+boto3>=1.34.0
+
+# Data Processing
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Configuration & Environment
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+
+# Optional: Database (if using RDS instead of S3)
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.0  # PostgreSQL driver (if using RDS)
+
+# Optional: Web API (if you want to expose as API service)
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+
+# RAG evaluation (DeepEval)
+deepeval>=0.21.0
+
+# Entity / keyword extraction (multi-retrieval)
+spacy>=3.7.0
+
+# Utilities
+python-dateutil>=2.8.0  # For date parsing
+redis>=5.0.0  # For conversation memory storage
