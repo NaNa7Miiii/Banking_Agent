@@ -1,3 +1,8 @@
+# Archive: Router + SQL (Midterm Version)
+
+This folder contains the midterm implementation and evaluation work
+for the Router and SQL modules before the system reorganization.
+
 # Router + SQL Module (Midterm Version)
 
 This branch contains the Router + SQL work developed during the midterm stage of the project.
