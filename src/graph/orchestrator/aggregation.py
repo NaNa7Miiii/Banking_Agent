@@ -32,6 +32,12 @@ def aggregate_results(
         if summary:
             parts.append(summary)
     if not parts:
+        for step_id in steps_order:
+            sr = step_results.get(step_id)
+            if sr and sr.get("status") == "error":
+                err = (sr.get("error_message") or "").strip()
+                if err:
+                    return err
         return "No results could be produced for your request."
 
     system_prompt = load_system_prompt(AGGREGATION_MODULE)
