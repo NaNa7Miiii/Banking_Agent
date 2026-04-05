@@ -1,37 +1,69 @@
-## Router + SQL Module
+## Router + SQL Module (Reorg Version)
 
-This module handles transaction-related queries and routes them to SQL-based data retrieval.
+This branch focuses on improving the routing + SQL pipeline for transaction-related queries.
 
-### Key contributions
-- Implemented routing from user query → SQL agent
-- Improved robustness for date parsing (YYYY-MM-DD)
-- Supports both single-day and date-range queries
-- Returns user-friendly error messages instead of failing on invalid input
+## Key Improvements
 
-### Related branches
-- router-sql-evaluation: midterm work (router + SQL + evaluation)
-- router-sql: post-reorg improvements (robustness and edge-case handling)
+- More robust routing from user query → SQL agent
+- Improved date parsing (standardized to YYYY-MM-DD)
+- Support for both single-day and date-range queries
+- Better handling of edge cases and invalid inputs
+- Stable error handling (no system crashes)
 
-## Additional Work
+## Compared to Midterm (router-sql-evaluation)
 
-### 1. Evaluation
+| Aspect         | Midterm Version | Reorg Version          |
+|----------------|-----------------|------------------------|
+| Accuracy       | Higher (~0.86)  | Slightly lower (~0.83) |
+| Robustness     | Basic           | Improved               |
+| Modularity     | Limited         | Improved               |
+| Error Handling | Weak            | Stable                 |
 
-We added an evaluation component to better understand system performance.
+Key Trade-off:
+Slight drop in accuracy in exchange for better robustness and system reliability.
 
-This includes:
-- basic metrics (accuracy, precision, recall, F1-score)
-- confusion matrix
-- simple comparison across different settings
+## Evaluation
 
-The goal is to make the system more interpretable and verify that the results are reasonable.
+### Router (Planner)
 
-### 2. Experiment / Analysis
+- Accuracy: 0.8293
+- Macro F1: 0.8185
 
-We also performed additional analysis to understand fraud patterns and model behavior.
+The routing module correctly handles ~83% of queries with balanced performance across categories.
 
-This includes:
-- feature-level observations
-- how different signals contribute to fraud detection
-- general patterns in transaction data
+#### Confusion Matrix
 
-These experiments help explain why the system works, not just how it is implemented.
+![Router Confusion Matrix](evaluation/output/router_confusion_matrix.png)
+
+Most predictions fall on the diagonal, indicating correct routing.
+
+However, most errors occur between **fraud and SQL queries**, where fraud-related queries are sometimes misclassified as SQL.
+
+This suggests that routing errors are mainly caused by **semantic ambiguity**, rather than system design issues.
+
+### SQL Agent
+
+- SQL routing rate: 1.00
+- Execution success rate: 1.00
+- Non-empty answer rate: 1.00
+- Error rate: 0.00
+
+The SQL pipeline is highly reliable in both query generation and execution.
+
+## Analysis
+
+We analyzed routing errors and observed that:
+
+- Most errors occur in ambiguous queries
+  (e.g., fraud vs transaction queries)
+
+Key insight:
+Most errors are caused by semantic ambiguity, not system design flaws.
+
+## Summary
+
+- Improved robustness and modularity
+- Reliable SQL execution
+- Minor drop in accuracy is acceptable given system improvements
+
+Main challenge remains natural language ambiguity rather than implementation issues.
