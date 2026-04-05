@@ -33,7 +33,7 @@ The routing module correctly handles ~83% of queries with balanced performance a
 
 #### Confusion Matrix
 
-![Router Confusion Matrix](evaluation/output/router_confusion_matrix.png)
+![Router Confusion Matrix](evaluation/assets/router_confusion_matrix.png)
 
 Most predictions fall on the diagonal, indicating correct routing.
 
