@@ -1,0 +1,47 @@
+text,true_intent
+Why was I charged twice for the same purchase,subagent:fraud
+Someone used my card without permission,subagent:fraud
+This transaction looks suspicious,subagent:fraud
+I think my card has been compromised,subagent:fraud
+There is an unknown charge on my account,subagent:fraud
+My account was charged in another country,subagent:fraud
+I didn’t authorize this payment,subagent:fraud
+Why is there a random subscription on my card,subagent:fraud
+I see a small test charge on my statement,subagent:fraud
+My card details might have been stolen,subagent:fraud
+There’s a purchase I don’t remember making,subagent:fraud
+
+Show my transactions above $100,subagent:sql
+How much did I spend on groceries,subagent:sql
+What was my largest transaction,subagent:sql
+Display my pending transactions,subagent:sql
+Give me my account balance,subagent:sql
+Show my card payments history,subagent:sql
+List transactions for today,subagent:sql
+How much money did I withdraw recently,subagent:sql
+Break down my expenses by category,subagent:sql
+What are my recent card charges,subagent:sql
+
+What amount did the company report for cost of goods sold,subagent:rag
+What are the company’s total operating expenses,subagent:rag
+What percentage of revenue was spent on sales and marketing,subagent:rag
+What is the reported earnings per share,subagent:rag
+How did the company describe its liquidity position,subagent:rag
+What does the 10-K say about future growth plans,subagent:rag
+How are the company’s assets classified on the balance sheet,subagent:rag
+What is the company’s total stockholder equity,subagent:rag
+What did the management discuss about competitive landscape,subagent:rag
+How much did the company return to shareholders via dividends,subagent:rag
+
+What are today’s headlines,main
+What are the latest finance updates,main
+What is today’s weather forecast,main
+Who is the current president of the United States,main
+What is the latest news about inflation,main
+Thanks a lot,main
+Goodbye,main
+Who are you,main
+What can you do,main
+That’s interesting,main
+
+

@@ -1,0 +1,7 @@
+{
+  "num_samples": 30,
+  "sql_routing_rate": 1.0,
+  "execution_success_rate": 1.0,
+  "nonempty_answer_rate": 1.0,
+  "error_rate": 0.0
+}
